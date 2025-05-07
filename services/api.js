@@ -45,7 +45,22 @@ export const productsAPI = {
   update: (id, productData) => api.put(`/products/${id}`, productData),
   delete: (id) => api.delete(`/products/${id}`)
 };
-
+export const cartAPI = {
+  // Получение содержимого корзины текущего пользователя
+  getCart: () => api.get('/cart'),
+  
+  // Добавление товара в корзину
+  addToCart: (productId, quantity = 1) => api.post('/cart', { productId, quantity }),
+  
+  // Обновление количества товара в корзине
+  updateCartItem: (itemId, quantity) => api.put(`/cart/items/${itemId}`, { quantity }),
+  
+  // Удаление товара из корзины
+  removeFromCart: (itemId) => api.delete(`/cart/items/${itemId}`),
+  
+  // Очистка всей корзины
+  clearCart: () => api.delete('/cart')
+};
 // Аналогично для других сущностей (корзина, заказы и т.д.)
 
 export default api;

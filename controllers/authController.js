@@ -73,11 +73,11 @@ exports.login = async (req, res) => {
     const user = users[0];
 
     // Проверка пароля
-    // const isPasswordValid = await bcrypt.compare(password, user.password);
+     const isPasswordValid = await bcrypt.compare(password, user.password);
 
-   /* if (!isPasswordValid) {
+    if (!isPasswordValid) {
       return res.status(401).json({ message: 'Неверные учетные данные' });
-    }*/
+    }
 
     // Генерация JWT
     const token = jwt.sign(
