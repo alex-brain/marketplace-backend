@@ -95,6 +95,8 @@ exports.createOrder = async (req, res) => {
   try {
     const userId = req.userData.userId;
     const { shippingAddress, paymentMethod } = req.body;
+    
+    console.log('paymentMethod', paymentMethod)
 
     // Начало транзакции
     await db.query('START TRANSACTION');
@@ -143,8 +145,8 @@ exports.createOrder = async (req, res) => {
 
     // Создаем заказ
     const [orderResult] = await db.query(
-      'INSERT INTO orders (user_id, total_amount, status, shipping_address, payment_method) VALUES (?, ?, ?, ?, ?)',
-      [userId, totalAmount, 'pending', shippingAddress, paymentMethod]
+      'INSERT INTO orders (user_id, total_amount, status, shipping_address) VALUES (?, ?, ?, ?)',
+      [userId, totalAmount, 'pending', shippingAddress]
     );
 
     const orderId = orderResult.insertId;

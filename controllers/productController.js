@@ -46,9 +46,12 @@ exports.createProduct = async (req, res) => {
     const { name, description, price, stock, category_id } = req.body;
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
+    // Преобразуем пустую строку в null
+    const categoryId = category_id === '' ? null : category_id;
+
     const [result] = await db.query(
       'INSERT INTO products (name, description, price, stock, image_url, category_id) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, description, price, stock, imageUrl, category_id]
+      [name, description, price, stock, imageUrl, categoryId]
     );
 
     res.status(201).json({
