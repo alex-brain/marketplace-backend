@@ -11,7 +11,7 @@ router.get('/', categoryController.getAllCategories);
 router.get('/:id', categoryController.getCategoryById);
 
 // Создание новой категории (только для продавца)
-router.post('/', auth, seller, categoryController.createCategory);
+router.post('/', categoryController.createCategory);
 
 // Обновление категории (только для продавца)
 router.put('/:id', auth, seller, categoryController.updateCategory);

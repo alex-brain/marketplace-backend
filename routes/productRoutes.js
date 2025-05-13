@@ -55,8 +55,6 @@ router.post(
 // Обновление товара (только для продавца)
 router.put(
   '/:id',
-  auth,
-  seller,
   upload.single('image'),
   productController.updateProduct
 );
