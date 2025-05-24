@@ -13,7 +13,7 @@ router.post('/login', authController.login);
 router.get('/me', auth, authController.getCurrentUser);
 
 // Обновление данных пользователя
-router.put('/update', auth, authController.updateUser);
+router.put('/update', authController.updateUser);
 
 // Изменение пароля
 router.put('/change-password', auth, authController.changePassword);
