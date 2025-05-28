@@ -228,27 +228,17 @@ exports.updateOrderStatus = async (req, res) => {
       }
 
       // Уменьшаем количество товаров на складе
-<<<<<<< HEAD
       // for (const item of orderItems) {
       //   await db.query(
       //     'UPDATE products SET stock = stock - ? WHERE id = ?',
       //     [item.quantity, item.product_id]
       //   );
       // }
-=======
-      for (const item of orderItems) {
-        await db.query(
-          'UPDATE products SET stock = stock - ? WHERE id = ?',
-          [item.quantity, item.product_id]
-        );
-      }
->>>>>>> 5185fc41489ede1c228022db7c6364b5f0596949
     }
 
     // Обновляем статус
     await db.query('UPDATE orders SET status = ? WHERE id = ?', [status, orderId]);
 
-<<<<<<< HEAD
     if (status === 'cancelled' && oldStatus !== 'cancelled') {
       const [orderItems] = await db.query(
         'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
@@ -267,14 +257,6 @@ exports.updateOrderStatus = async (req, res) => {
     
     res.status(200).json({ message: 'Статус заказа обновлен' });
   } catch (error) {
-=======
-    // Фиксируем транзакцию
-    await db.query('COMMIT');
-
-    res.status(200).json({ message: 'Статус заказа обновлен' });
-  } catch (error) {
-    // Откатываем транзакцию в случае ошибки
->>>>>>> 5185fc41489ede1c228022db7c6364b5f0596949
     await db.query('ROLLBACK');
     res.status(500).json({ message: error.message });
   }
@@ -388,16 +370,11 @@ exports.cancelOrder = async (req, res) => {
     await db.query('START TRANSACTION');
 
     // Сохраняем предыдущий статус
-<<<<<<< HEAD
     const previousStatus=order.status;
-=======
-    const previousStatus = order.status;
->>>>>>> 5185fc41489ede1c228022db7c6364b5f0596949
 
     // Обновляем статус заказа
     await db.query('UPDATE orders SET status = ? WHERE id = ?', ['cancelled', orderId]);
 
-<<<<<<< HEAD
     // Возвращаем товары на склад, только если заказ был отправлен
       if (previousStatus !== 'cancelled' ) {
      const [orderItems] = await db.query(
@@ -409,13 +386,6 @@ exports.cancelOrder = async (req, res) => {
       await db.query(
         'UPDATE products SET stock = stock + ? WHERE id = ?',
         [item.quantity, item.product_id]
-=======
-    // Возвращаем товары на склад только если заказ был отправлен
-    if (previousStatus === 'shipped' || previousStatus === 'delivered') {
-      const [orderItems] = await db.query(
-        'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
-        [orderId]
->>>>>>> 5185fc41489ede1c228022db7c6364b5f0596949
       );
 
       for (const item of orderItems) {
