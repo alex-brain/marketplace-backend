@@ -95,7 +95,7 @@ exports.createOrder = async (req, res) => {
   try {
     const userId = req.userData.userId;
     const { shippingAddress, paymentMethod } = req.body;
-
+ console.log('paymentMethod', paymentMethod)
     // Начало транзакции
     await db.query('START TRANSACTION');
 
@@ -143,8 +143,8 @@ exports.createOrder = async (req, res) => {
 
     // Создаем заказ
     const [orderResult] = await db.query(
-      'INSERT INTO orders (user_id, total_amount, status, shipping_address, payment_method) VALUES (?, ?, ?, ?, ?)',
-      [userId, totalAmount, 'pending', shippingAddress, paymentMethod]
+      'INSERT INTO orders (user_id, total_amount, status, shipping_address) VALUES (?, ?, ?, ?)',
+      [userId, totalAmount, 'processing', shippingAddress]
     );
 
     const orderId = orderResult.insertId;
@@ -157,10 +157,10 @@ exports.createOrder = async (req, res) => {
       );
 
       // Уменьшаем количество товара на складе
-      await db.query(
-        'UPDATE products SET stock = stock - ? WHERE id = ?',
-        [item.quantity, item.product_id]
-      );
+       await db.query(
+         'UPDATE products SET stock = stock - ? WHERE id = ?',
+         [item.quantity, item.product_id]
+       );
     }
 
     // Очищаем корзину
@@ -189,21 +189,75 @@ exports.updateOrderStatus = async (req, res) => {
     // Проверяем существование заказа
     const [orders] = await db.query('SELECT * FROM orders WHERE id = ?', [orderId]);
 
+    const oldStatus=orders[0].status;
+
     if (orders.length === 0) {
       return res.status(404).json({ message: 'Заказ не найден' });
     }
 
     // Проверяем допустимость статуса
-    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    const validStatuses = ['processing', 'awaiting','paid','ready', 'shipped', 'delivered', 'cancelled','end'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Недопустимый статус заказа' });
+    }
+
+// Начинаем транзакцию
+    await db.query('START TRANSACTION');
+
+    // Если статус меняется на "shipped", уменьшаем количество товаров на складе
+    if (status === 'processing' && oldStatus !== 'processing') {
+      // Получаем элементы заказа
+      const [orderItems] = await db.query(
+        'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
+        [orderId]
+      );
+
+      // Проверяем наличие товаров на складе перед отправкой
+      for (const item of orderItems) {
+        const [products] = await db.query(
+          'SELECT stock, name FROM products WHERE id = ?',
+          [item.product_id]
+        );
+
+        if (products.length > 0 && products[0].stock < item.quantity) {
+          await db.query('ROLLBACK');
+          return res.status(400).json({
+            message: `Недостаточное количество товара "${products[0].name}" на складе`
+          });
+        }
+      }
+
+      // Уменьшаем количество товаров на складе
+      // for (const item of orderItems) {
+      //   await db.query(
+      //     'UPDATE products SET stock = stock - ? WHERE id = ?',
+      //     [item.quantity, item.product_id]
+      //   );
+      // }
     }
 
     // Обновляем статус
     await db.query('UPDATE orders SET status = ? WHERE id = ?', [status, orderId]);
 
+    if (status === 'cancelled' && oldStatus !== 'cancelled') {
+      const [orderItems] = await db.query(
+        'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
+        [orderId]
+      );
+
+      for (const item of orderItems) {
+        await db.query(
+          'UPDATE products SET stock = stock + ? WHERE id = ?',
+          [item.quantity, item.product_id]
+        );
+      }
+    }
+    //Фиксируем транзакцию
+    await db.query('COMMIT');
+    
     res.status(200).json({ message: 'Статус заказа обновлен' });
   } catch (error) {
+    await db.query('ROLLBACK');
     res.status(500).json({ message: error.message });
   }
 };
@@ -306,7 +360,7 @@ exports.cancelOrder = async (req, res) => {
     }
 
     // Покупатель может отменить только заказы в статусе 'pending'
-    if (userRole !== 'seller' && order.status !== 'pending') {
+    if (userRole !== 'seller' && order.status !== 'processing') {
       return res.status(400).json({
         message: 'Можно отменить только заказы в статусе "Ожидает обработки"'
       });
@@ -315,14 +369,18 @@ exports.cancelOrder = async (req, res) => {
     // Начинаем транзакцию
     await db.query('START TRANSACTION');
 
+    // Сохраняем предыдущий статус
+    const previousStatus=order.status;
+
     // Обновляем статус заказа
     await db.query('UPDATE orders SET status = ? WHERE id = ?', ['cancelled', orderId]);
 
-    // Возвращаем товары на склад
-    const [orderItems] = await db.query(
-      'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
-      [orderId]
-    );
+    // Возвращаем товары на склад, только если заказ был отправлен
+      if (previousStatus !== 'cancelled' ) {
+     const [orderItems] = await db.query(
+       'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
+       [orderId]
+     );
 
     for (const item of orderItems) {
       await db.query(
@@ -330,7 +388,8 @@ exports.cancelOrder = async (req, res) => {
         [item.quantity, item.product_id]
       );
     }
-
+    //console.log(item.quantity);
+      }
     // Фиксируем изменения
     await db.query('COMMIT');
 

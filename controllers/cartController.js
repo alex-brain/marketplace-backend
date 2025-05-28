@@ -70,7 +70,7 @@ exports.addToCart = async (req, res) => {
     const userId = req.userData.userId;
     const { productId, quantity } = req.body;
 
-    // Проверяем наличие товара
+    // Проверяем cуществует ли товар и наличие товара
     const [products] = await db.query(
       'SELECT * FROM products WHERE id = ?',
       [productId]
@@ -82,52 +82,47 @@ exports.addToCart = async (req, res) => {
 
     const product = products[0];
 
-    // Проверяем наличие достаточного количества товара
-    if (product.stock < quantity) {
+    // Проверяем только наличие  товара
+    if (product.stock <=0) {
       return res.status(400).json({
-        message: 'Недостаточное количество товара на складе'
+        message: 'Товар отсутсвует на складе'
       });
     }
 
     // Получаем ID корзины пользователя
+    let cartId;
     const [carts] = await db.query(
       'SELECT id FROM cart WHERE user_id = ?',
       [userId]
     );
 
-    let cartId;
+  
 
     if (carts.length === 0) {
       // Создаем корзину, если она не существует
-      const [newCart] = await db.query(
+      const [result] = await db.query(
         'INSERT INTO cart (user_id) VALUES (?)',
         [userId]
       );
 
-      cartId = newCart.insertId;
+      cartId = result.insertId;
     } else {
       cartId = carts[0].id;
     }
 
     // Проверяем, есть ли уже этот товар в корзине
-    const [existingItems] = await db.query(
+    const [cartItems] = await db.query(
       'SELECT * FROM cart_items WHERE cart_id = ? AND product_id = ?',
       [cartId, productId]
     );
 
-    if (existingItems.length > 0) {
+    if (cartItems.length > 0) {
       // Обновляем количество, если товар уже в корзине
-      const newQuantity = existingItems[0].quantity + quantity;
-
-      if (newQuantity > product.stock) {
-        return res.status(400).json({
-          message: 'Недостаточное количество товара на складе'
-        });
-      }
+      
 
       await db.query(
-        'UPDATE cart_items SET quantity = ? WHERE id = ?',
-        [newQuantity, existingItems[0].id]
+        'UPDATE cart_items SET quantity = quantity + ? WHERE id = ?',
+        [quantity, cartItems[0].id]
       );
     } else {
       // Добавляем новый товар в корзину
@@ -137,7 +132,7 @@ exports.addToCart = async (req, res) => {
       );
     }
 
-    res.status(200).json({ message: 'Товар добавлен в корзину' });
+    res.status(201).json({ message: 'Товар добавлен в корзину' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -170,11 +165,11 @@ exports.updateCartItem = async (req, res) => {
     }
 
     // Проверяем наличие достаточного количества товара
-    if (quantity > cartItem.stock) {
-      return res.status(400).json({
-        message: 'Недостаточное количество товара на складе'
-      });
-    }
+    // if (quantity > cartItem.stock) {
+    //   return res.status(400).json({
+    //     message: 'Недостаточное количество товара на складе'
+    //   });
+    // }
 
     // Обновляем количество
     await db.query(

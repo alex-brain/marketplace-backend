@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { updateUser } from '../controllers/authController';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -21,6 +22,7 @@ export const authAPI = {
   login: (email, password) => api.post('/auth/login', { email, password }),
   register: (name, email, password) => api.post('/auth/register', { name, email, password }),
   getCurrentUser: () => api.get('/auth/me')
+  //updateUser:(name,email) => api.put('/auth/update', {name,email})
 };
 
 export const productsAPI = {
@@ -60,7 +62,10 @@ export const cartAPI = {
   
   // Очистка всей корзины
   clearCart: () => api.delete('/cart')
+
+  
 };
+
 // Аналогично для других сущностей (корзина, заказы и т.д.)
 
 export default api;

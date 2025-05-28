@@ -14,7 +14,7 @@ router.get('/:id', auth, orderController.getOrderById);
 router.post('/', auth, orderController.createOrder);
 
 // Обновление статуса заказа (только для продавца)
-router.put('/:id/status', auth, seller, orderController.updateOrderStatus);
+router.put('/:id/status', orderController.updateOrderStatus);
 
 // Получение количества заказов по статусам (только для продавца)
 router.get('/stats/count', auth, seller, orderController.getOrdersCount);

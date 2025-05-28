@@ -50,7 +50,7 @@ CREATE TABLE orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   total_amount DECIMAL(10, 2) NOT NULL,
-  status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+  status ENUM('processing','awaiting','paid', 'shipped', 'delivered', 'cancelled','end') DEFAULT 'processing',
   shipping_address TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)

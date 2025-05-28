@@ -11,6 +11,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -26,7 +27,6 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
-
 
 // Обработка ошибок
 app.use((err, req, res, next) => {

@@ -46,8 +46,8 @@ router.get('/search/:query', productController.searchProducts);
 // Создание нового товара (только для продавца)
 router.post(
   '/',
-  auth,
-  seller,
+ // auth,
+  //seller,
   upload.single('image'),
   productController.createProduct
 );
@@ -55,14 +55,14 @@ router.post(
 // Обновление товара (только для продавца)
 router.put(
   '/:id',
-  auth,
-  seller,
+  //auth,
+  //seller,
   upload.single('image'),
   productController.updateProduct
 );
 
 // Удаление товара (только для продавца)
-router.delete('/:id', auth, seller, productController.deleteProduct);
+router.delete('/:id',  productController.deleteProduct);
 
 // Получение товаров по категории
 router.get('/category/:categoryId', productController.getProductsByCategory);

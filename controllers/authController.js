@@ -122,7 +122,7 @@ exports.getCurrentUser = async (req, res) => {
 // Обновление данных пользователя
 exports.updateUser = async (req, res) => {
   try {
-    const userId = req.userData.userId;
+    const userId = req.body.id;
     const { name, email } = req.body;
 
     // Проверка существования email
