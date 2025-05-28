@@ -104,7 +104,6 @@ exports.addToCart = async (req, res) => {
         'INSERT INTO cart (user_id) VALUES (?)',
         [userId]
       );
-
       cartId = result.insertId;
     } else {
       cartId = carts[0].id;

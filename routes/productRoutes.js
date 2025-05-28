@@ -46,8 +46,13 @@ router.get('/search/:query', productController.searchProducts);
 // Создание нового товара (только для продавца)
 router.post(
   '/',
+<<<<<<< HEAD
  // auth,
   //seller,
+=======
+  // auth,
+  // seller,
+>>>>>>> 5185fc41489ede1c228022db7c6364b5f0596949
   upload.single('image'),
   productController.createProduct
 );
