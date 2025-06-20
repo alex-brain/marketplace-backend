@@ -3,6 +3,7 @@ const router = express.Router();
 const productController = require('../controllers/productController');
 const auth = require('../middleware/auth');
 const seller = require('../middleware/seller');
+const upload = require('../middleware/upload');
 const multer = require('multer');
 const path = require('path');
 
@@ -26,14 +27,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 1024 * 1024 * 5 // Максимальный размер 5MB
-  }
-});
-
 // Получение всех товаров (публичный доступ)
 router.get('/', productController.getAllProducts);
 
@@ -46,13 +39,6 @@ router.get('/search/:query', productController.searchProducts);
 // Создание нового товара (только для продавца)
 router.post(
   '/',
-<<<<<<< HEAD
- // auth,
-  //seller,
-=======
-  // auth,
-  // seller,
->>>>>>> 5185fc41489ede1c228022db7c6364b5f0596949
   upload.single('image'),
   productController.createProduct
 );
@@ -71,5 +57,7 @@ router.delete('/:id',  productController.deleteProduct);
 
 // Получение товаров по категории
 router.get('/category/:categoryId', productController.getProductsByCategory);
+
+router.get('/image/:filename', productController.getProductImage);
 
 module.exports = router;
